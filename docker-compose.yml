@@ -1,0 +1,47 @@
+version: "3"
+
+networks:
+  local:
+    name: local
+
+services:
+  node_server:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: son_node
+    container_name: son_node
+    working_dir: /var/www
+    entrypoint: [ "/docker-entrypoint.sh" ]
+    volumes:
+      - ./:/var/www
+      - /var/www/node_modules
+    networks:
+      - local
+
+  nginx:
+    build:
+      context: ./
+      dockerfile: Dockerfile.nginx
+    image: son_nginx
+    container_name: son_nginx
+    networks:
+      - local
+    ports:
+      - "8080:80"
+
+  db:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: son_db
+    restart: always
+    tty: true
+    volumes:
+      - ./.mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=son_db
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - local
+    ports:
+      - "3306:3306"
